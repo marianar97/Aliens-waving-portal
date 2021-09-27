@@ -153,7 +153,7 @@ const App = () => {
         </div>
 
         <button className="waveButton" onClick={wave}>
-          Wave at Me
+          Send me a 🖖
         </button>
         {/*
         * If there is no currentAccount render this button
