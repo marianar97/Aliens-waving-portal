@@ -10,8 +10,12 @@ const App = () => {
     */
     const [currentAccount, setCurrentAccount] = useState("");
     const [allWaves, setAllWaves] = useState([]);
+    const [connect, setConnect] = useState(false);
+    const [message, setMessage] = useState("");
     const contractAddress = "0x4ED252a23D3c393822a0971984b4cF8E7231D66e";
     const contractABI = abi.abi;
+
+
 
     const getAllWaves = async () => {
       try {
@@ -52,11 +56,11 @@ const App = () => {
     }
   }
 
-    const checkIfWalletIsConnected = async () => {
+  const checkIfWalletIsConnected = async () => {
       try {
         const { ethereum } = window;
-
         if (!ethereum) {
+          setConnect(false);
           console.log("Make sure you have metamask!");
           return;
         } else {
@@ -67,16 +71,22 @@ const App = () => {
 
         if (accounts.length !== 0) {
           const account = accounts[0];
+          setConnect(true);
           console.log("Found an authorized account:", account);
           setCurrentAccount(account);
           getAllWaves();
         } else {
-          console.log("No authorized account found")
+          setConnect(false);
+          console.log("No authorized account found");
         }
 
       } catch (error) {
         console.log(error);
       }
+  }
+
+  const submit = () => {
+        console.log("calling submit");
   }
 
   /**
@@ -140,40 +150,80 @@ const App = () => {
     checkIfWalletIsConnected();
   }, [])
 
-  return (
-    <div className="mainContainer">
+  // ...Or in a useEffect call
+useEffect(() => {
+  console.log("changed connect", connect);
+}, [connect]);
 
-      <div className="dataContainer">
-        <div className="header">
-          🚀 Hey aliens!
-        </div>
+const handleSubmit = (e) => {
+  console.log("CHANGEEE");
+}
 
-        <div className="bio">
-          I am Martech, a software engineer with background in backend development and ML. Send me a vulcane wave 🖖
-        </div>
+  if (!connect){
+    return (
+      <div className="mainContainer">
 
-        <button className="waveButton" onClick={wave}>
-          Send me a 🖖
-        </button>
-        {/*
-        * If there is no currentAccount render this button
-        */}
-        {!currentAccount && (
-          <button className="waveButton" onClick={connectWallet}>
-            Connect Wallet
+        <div className="dataContainer">
+          <div className="header">
+            🚀 Hey aliens!
+          </div>
+
+          <div className="bio">
+            I am Martech, a software engineer with background in backend development and ML. Send me a vulcane wave 🖖
+          </div>
+
+          <button className="waveButton" onClick={wave}>
+            Send me a 🖖
           </button>
-        )}
-        {allWaves.map((wave, index) => {
-          return (
-            <div key={index} style={{ backgroundColor: "OldLace", marginTop: "16px", padding: "8px" }}>
-              <div>Address: {wave.address}</div>
-              <div>Time: {wave.timestamp.toString()}</div>
-              <div>Message: {wave.message}</div>
-            </div>)
-        })}
+          {/*
+          * If there is no currentAccount render this button
+          */}
+          {!currentAccount && (
+            <button className="waveButton" onClick={connectWallet}>
+              Connect Wallet
+            </button>
+          )}
+          {allWaves.map((wave, index) => {
+            return (
+              <div key={index} style={{ backgroundColor: "OldLace", marginTop: "16px", padding: "8px" }}>
+                <div>Address: {wave.address}</div>
+                <div>Time: {wave.timestamp.toString()}</div>
+                <div>Message: {wave.message}</div>
+              </div>)
+          })}
+        </div>
       </div>
+    );
+  } else {
+    return (
+
+      <div className="mainContainer">
+
+        <div className="dataContainer">
+          <div className="header">
+            🚀 Hey aliens!
+          </div>
+
+          <div className="bio">
+            I am Martech, a software engineer with background in backend development and ML. Send me a vulcane wave 🖖
+          </div>
+        
+
+        <div className="create">
+          <form onSubmit={handleSubmit}>
+            <textarea
+              required
+              value = {message}
+              onChange = {(e)=>setMessage(e.target.value)}
+            ></textarea>
+            <button>Send wave</button>
+          </form>
+        </div>
     </div>
-  );
+    </div>
+
+    )
+  }
 }
 
 export default App
