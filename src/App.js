@@ -1,7 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { ethers } from "ethers";
+import 'bootstrap/dist/css/bootstrap.min.css'; 
 import './App.css';
 import abi from "./utils/WavePortal.json"
+import { Container, Row, Col } from 'reactstrap';
+
 
 
 const App = () => {
@@ -12,7 +15,7 @@ const App = () => {
     const [allWaves, setAllWaves] = useState([]);
     const [connect, setConnect] = useState(false);
     const [message, setMessage] = useState("");
-    const contractAddress = "0x4ED252a23D3c393822a0971984b4cF8E7231D66e";
+    const contractAddress = "0x6F9794A1e349F76d94569C5Ea8bAbef349643969";
     const contractABI = abi.abi;
 
 
@@ -47,6 +50,7 @@ const App = () => {
         /*
          * Store our data in React State
          */
+        console.log("waves cleaned", wavesCleaned)
         setAllWaves(wavesCleaned);
         } else {
           console.log("Ethereum object doesn't exist!")
@@ -71,10 +75,10 @@ const App = () => {
 
         if (accounts.length !== 0) {
           const account = accounts[0];
-          setConnect(true);
           console.log("Found an authorized account:", account);
           setCurrentAccount(account);
           getAllWaves();
+          await setConnect(true);
         } else {
           setConnect(false);
           console.log("No authorized account found");
@@ -85,9 +89,6 @@ const App = () => {
       }
   }
 
-  const submit = () => {
-        console.log("calling submit");
-  }
 
   /**
   * Implement your connectWallet method here
@@ -104,13 +105,16 @@ const App = () => {
       const accounts = await ethereum.request({ method: "eth_requestAccounts" });
 
       console.log("Connected", accounts[0]);
-      setCurrentAccount(accounts[0]); 
+      await setCurrentAccount(accounts[0]); 
+      await setConnect(true);
+      await getAllWaves();
     } catch (error) {
       console.log(error)
     }
   }
 
-  const wave = async () => {
+  const wave = async (message) => {
+    console.log("calling wave")
     try {
       const { ethereum } = window;
 
@@ -125,7 +129,7 @@ const App = () => {
         /*
         * Execute the actual wave from your smart contract
         */
-        const waveTxn = await waveportalContract.wave();
+        const waveTxn = await waveportalContract.wave(message, { gasLimit: 300000 });
         console.log("Mining...", waveTxn.hash);
 
         await waveTxn.wait();
@@ -142,7 +146,16 @@ const App = () => {
     }
   }
   
-
+const handleSubmit = async(e) => {
+  e.preventDefault();
+  console.log("calling getAllWaves");
+  await getAllWaves();
+  console.log("finished calling getAllwaves")
+  console.log("calling wave");
+  await wave(message);
+  console.log("finished calling wave");
+  window.location.reload(); 
+}
   /*
   * This runs our function when the page loads.
   */
@@ -155,9 +168,10 @@ useEffect(() => {
   console.log("changed connect", connect);
 }, [connect]);
 
-const handleSubmit = (e) => {
-  console.log("CHANGEEE");
-}
+useEffect(() => {
+  console.log("All waves", allWaves);
+}, [allWaves]);
+
 
   if (!connect){
     return (
@@ -209,18 +223,47 @@ const handleSubmit = (e) => {
           </div>
         
 
-        <div className="create">
-          <form onSubmit={handleSubmit}>
-            <textarea
-              required
-              value = {message}
-              onChange = {(e)=>setMessage(e.target.value)}
-            ></textarea>
-            <button>Send wave</button>
-          </form>
+          <div className="create">
+            <form onSubmit={handleSubmit}>
+              <textarea
+                required
+                value = {message}
+                onChange = {(e)=>setMessage(e.target.value)}
+              ></textarea>
+              <button>Send wave</button>
+            </form>
+          </div>
+
+          {allWaves.map((w) => (
+            <Container className="rd">
+              <Row className="top">
+                <Col>
+                  Message
+                </Col>
+                <Col>
+                  address
+                </Col>
+                <Col>
+                  Timestamp
+                </Col>
+              </Row>
+              <Row >
+                <Col xs="4">
+                  {w.message}
+                </Col>
+                <Col xs="4" className="address">
+                  {w.address}
+                </Col>
+                <Col xs="4">
+                  {w.timestamp.toString()} 
+                </Col>
+              </Row>
+            </Container>
+          ))}
+
+        
         </div>
-    </div>
-    </div>
+      </div>
 
     )
   }
